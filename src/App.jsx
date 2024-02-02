@@ -9,12 +9,31 @@ function App() {
   const [withoutImage, setWithoutImage] = useState(false);
   const [error, setError] = useState(false);
   const [imageUploaded, setImageUpload] = useState(false);
+  const [rejectedfiles, setRejectedfiles] = useState(false);
 
   const API_URL = "https://api.cloudinary.com/v1_1/djdly2tf7/image/upload";
 
   const onDrop = useCallback((acceptedFiles) => {}, []);
-  const { getRootProps, getInputProps, isDragActive, acceptedFiles } =
-    useDropzone({ onDrop });
+  const {
+    getRootProps,
+    getInputProps,
+    isDragActive,
+    fileRejections,
+    acceptedFiles,
+  } = useDropzone({
+    onDrop,
+    accept: {
+      "image/png": [".png"],
+      "image/jpg": [".jpg"],
+    },
+  });
+
+  //files not acepted
+  const fileRejectionItems = fileRejections.map(({ file }) => (
+    <li style={{ color: "red" }} key={file.path}>
+      {file.path}
+    </li>
+  ));
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -23,6 +42,7 @@ function App() {
     formData.append("file", acceptedFiles[0]);
     formData.append("upload_preset", "x3zos2s0");
     formData.append("api_key", "982777293155418");
+
     if (acceptedFiles.length === 0) {
       setWithoutImage(true);
       setTimeout(() => {
@@ -33,6 +53,7 @@ function App() {
         const res = await fetch(API_URL, { method: "POST", body: formData });
         const data = await res.json();
         console.log(data);
+
         setUrlImagen(data.url);
         setImageUpload(true);
       } catch (error) {
@@ -53,7 +74,9 @@ function App() {
             <p>Suelta las imagenes aqui ...</p>
           ) : (
             <p>
-              Arrastra y suelta algunas imagenes o da click para seleccionar
+              Arrastra y suelta la imagen o da click para seleccionar
+              <br></br>
+              <em>(Solo imagenes con formato .jpg y .png)</em>
             </p>
           )}
         </div>
@@ -79,6 +102,7 @@ function App() {
             }}
           />
         )}
+        {fileRejectionItems}
         <div>
           <button className="sendButton">Subir imagenes</button>
         </div>
